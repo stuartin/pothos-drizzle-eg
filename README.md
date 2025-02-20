@@ -1,8 +1,7 @@
 ```
-npm install
-npm run dev
-```
+pnpm install
+pnpm db:init
+pnpm db:seed
 
-```
-npm run deploy
+pnpm dev
 ```
