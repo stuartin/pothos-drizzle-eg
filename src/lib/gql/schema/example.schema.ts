@@ -109,5 +109,3 @@ const PlayerToPointRef = builder.drizzleNode('playerToPoint', {
     id: { column: ({ id }) => id },
     name: 'PlayerToPoint'
 })
-
-export const gqlSchema = builder.toSchema();
