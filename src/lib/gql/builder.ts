@@ -24,9 +24,9 @@ interface Root<T> {
 export const builder = new SchemaBuilder<Root<Context>>({
     plugins: [DrizzlePlugin, RelayPlugin],
     drizzle: {
-        client: (ctx) => drizzle(ctx.DB, { schema }),
+        client: (ctx) => ctx.db,
         schema
-    },
+    }
 })
 
 builder.queryType()
