@@ -15,18 +15,16 @@ const GameRef = builder.drizzleNode('game', {
 builder.queryFields((t) => ({
     games: t.drizzleConnection({
         type: 'game',
-        resolve: (query, parent, args, context) => {
-            const db = drizzle(context.DB, { schema })
-            return db.query.game.findMany(query())
+        resolve: (query, parent, args, ctx) => {
+            return ctx.db.query.game.findMany(query())
         }
     }),
     game: t.drizzleField({
         type: 'game',
         args: { id: t.arg.id({ required: true }) },
         nullable: true,
-        resolve: (query, parent, args, context) => {
-            const db = drizzle(context.DB, { schema })
-            return db.query.game.findFirst(query({
+        resolve: (query, parent, args, ctx) => {
+            return ctx.db.query.game.findFirst(query({
                 where: (fields, { eq }) => eq(fields.id, args.id)
             }))
         }
@@ -47,18 +45,16 @@ const PlayerRef = builder.drizzleNode('player', {
 builder.queryFields((t) => ({
     players: t.drizzleConnection({
         type: 'player',
-        resolve: (query, parent, args, context) => {
-            const db = drizzle(context.DB, { schema })
-            return db.query.player.findMany(query())
+        resolve: (query, parent, args, ctx) => {
+            return ctx.db.query.player.findMany(query())
         }
     }),
     player: t.drizzleField({
         type: 'player',
         args: { id: t.arg.id({ required: true }) },
         nullable: true,
-        resolve: (query, parent, args, context) => {
-            const db = drizzle(context.DB, { schema })
-            return db.query.player.findFirst(query({
+        resolve: (query, parent, args, ctx) => {
+            return ctx.db.query.player.findFirst(query({
                 where: (fields, { eq }) => eq(fields.id, args.id)
             }))
         }
@@ -77,18 +73,16 @@ const TeamRef = builder.drizzleNode('team', {
 builder.queryFields((t) => ({
     teams: t.drizzleConnection({
         type: 'team',
-        resolve: (query, parent, args, context) => {
-            const db = drizzle(context.DB, { schema })
-            return db.query.team.findMany(query())
+        resolve: (query, parent, args, ctx) => {
+            return ctx.db.query.team.findMany(query())
         }
     }),
     team: t.drizzleField({
         type: 'team',
         args: { id: t.arg.id({ required: true }) },
         nullable: true,
-        resolve: (query, parent, args, context) => {
-            const db = drizzle(context.DB, { schema })
-            return db.query.team.findFirst(query({
+        resolve: (query, parent, args, ctx) => {
+            return ctx.db.query.team.findFirst(query({
                 where: (fields, { eq }) => eq(fields.id, args.id)
             }))
         }

@@ -4,6 +4,7 @@ import RelayPlugin from '@pothos/plugin-relay';
 import { DateTimeResolver } from 'graphql-scalars';
 import * as schema from "#lib/db/schema"
 import { drizzle } from 'drizzle-orm/d1';
+import { Context } from 'src';
 
 interface Root<T> {
     Context: T
@@ -20,7 +21,7 @@ interface Root<T> {
     }
 }
 
-export const builder = new SchemaBuilder<Root<CloudflareBindings>>({
+export const builder = new SchemaBuilder<Root<Context>>({
     plugins: [DrizzlePlugin, RelayPlugin],
     drizzle: {
         client: (ctx) => drizzle(ctx.DB, { schema }),
