@@ -1,12 +1,15 @@
-import { drizzle } from "drizzle-orm/d1";
 import { builder } from "../builder";
-import * as schema from "../../db/schema"
 
+// drizzleNode > gives a unique globalID for ALL nodes
+// drizzleObject > just expose the object
 
-const GameRef = builder.drizzleNode('game', {
-    id: { column: ({ id }) => id },
+// Cursor based pagination
+// - drizzleConnection > drizzleNode OR drizzleObject (must have an id field)
+// - query must have orderBy
+const GameRef = builder.drizzleObject('game', {
     name: 'Game',
     fields: (t) => ({
+        id: t.exposeID("id"),
         team: t.relation('team'),
         complete: t.exposeBoolean('complete'),
     }),
@@ -15,9 +18,13 @@ const GameRef = builder.drizzleNode('game', {
 builder.queryFields((t) => ({
     games: t.drizzleConnection({
         type: 'game',
-        resolve: (query, parent, args, ctx) => {
-            return ctx.db.query.game.findMany(query())
-        }
+        resolve: (query, parent, args, ctx) =>
+            ctx.db.query.game.findMany(query({
+                orderBy: (game) => ({
+                    desc: game.createdAt,
+                }),
+            }))
+
     }),
     game: t.drizzleField({
         type: 'game',
@@ -31,11 +38,15 @@ builder.queryFields((t) => ({
     })
 }));
 
+// Limit/Offset pagination
+// - drizzleField > drizzleObject (needs limit/offset args)
+// - uses normal db query
+// - no relay stuff (connection/edges)
 
-const PlayerRef = builder.drizzleNode('player', {
-    id: { column: ({ id }) => id },
+const PlayerRef = builder.drizzleObject('player', {
     name: 'Player',
     fields: (t) => ({
+        id: t.exposeID("id"),
         name: t.exposeString('name'),
         number: t.exposeInt('number'),
         points: t.relatedConnection('points')
@@ -43,28 +54,42 @@ const PlayerRef = builder.drizzleNode('player', {
 });
 
 builder.queryFields((t) => ({
-    players: t.drizzleConnection({
-        type: 'player',
-        resolve: (query, parent, args, ctx) => {
-            return ctx.db.query.player.findMany(query())
-        }
+    players: t.drizzleField({
+        type: ['player'],
+        args: {
+            limit: t.arg.int(),
+            offset: t.arg.int()
+        },
+        resolve: (query, parent, args, ctx) => ctx.db.query.player.findMany(query({
+            limit: args.limit ?? 2,
+            offset: args.offset ?? 0,
+            orderBy: (player, { desc }) => desc(player.createdAt)
+        }))
     }),
     player: t.drizzleField({
         type: 'player',
         args: { id: t.arg.id({ required: true }) },
         nullable: true,
-        resolve: (query, parent, args, ctx) => {
-            return ctx.db.query.player.findFirst(query({
-                where: (fields, { eq }) => eq(fields.id, args.id)
-            }))
-        }
+        resolve: (query, parent, args, ctx) => ctx.db.query.player.findFirst(query({
+            where: (fields, { eq }) => eq(fields.id, args.id)
+        }))
     })
 }));
 
-const TeamRef = builder.drizzleNode('team', {
-    id: { column: ({ id }) => id },
+const PointRef = builder.drizzleObject('point', {
+    name: 'Point',
+    fields: (t) => ({
+        id: t.exposeID("id"),
+        startedOnOffense: t.exposeBoolean('startedOnOffense'),
+        scored: t.exposeBoolean('scored'),
+        team: t.relation('team')
+    }),
+});
+
+const TeamRef = builder.drizzleObject('team', {
     name: 'Team',
     fields: (t) => ({
+        id: t.exposeID("id"),
         name: t.exposeString('name'),
         games: t.relatedConnection('games'),
     }),
@@ -73,33 +98,22 @@ const TeamRef = builder.drizzleNode('team', {
 builder.queryFields((t) => ({
     teams: t.drizzleConnection({
         type: 'team',
-        resolve: (query, parent, args, ctx) => {
-            return ctx.db.query.team.findMany(query())
-        }
+        resolve: (query, parent, args, ctx) => ctx.db.query.team.findMany(query())
     }),
     team: t.drizzleField({
         type: 'team',
         args: { id: t.arg.id({ required: true }) },
         nullable: true,
-        resolve: (query, parent, args, ctx) => {
-            return ctx.db.query.team.findFirst(query({
-                where: (fields, { eq }) => eq(fields.id, args.id)
-            }))
-        }
+        resolve: (query, parent, args, ctx) => ctx.db.query.team.findFirst(query({
+            where: (fields, { eq }) => eq(fields.id, args.id)
+        }))
     })
 }));
 
-const PointRef = builder.drizzleNode('point', {
-    id: { column: ({ id }) => id },
-    name: 'Point',
+const PlayerToPointRef = builder.drizzleObject('playerToPoint', {
+    name: 'PlayerToPoint',
     fields: (t) => ({
-        startedOnOffense: t.exposeBoolean('startedOnOffense'),
-        scored: t.exposeBoolean('scored'),
-        team: t.relation('team')
-    }),
-});
-
-const PlayerToPointRef = builder.drizzleNode('playerToPoint', {
-    id: { column: ({ id }) => id },
-    name: 'PlayerToPoint'
+        player: t.relation('player'),
+        point: t.relation('point')
+    })
 })
