@@ -57,7 +57,6 @@ export const point = sqliteTable("point", {
 });
 
 export const playerToPoint = sqliteTable("player_to_point", {
-    id: text("id").unique().notNull().$defaultFn(() => createId()),
     playerId: text("player_id")
         .notNull()
         .references(() => player.id, { onDelete: "cascade" }),
@@ -65,7 +64,7 @@ export const playerToPoint = sqliteTable("player_to_point", {
         .notNull()
         .references(() => point.id),
 }, (table) => [
-    primaryKey({ name: "id", columns: [table.id, table.playerId, table.pointId] })
+    primaryKey({ name: "id", columns: [table.playerId, table.pointId] })
 ]);
 
 export const playerToPointRelations = relations(playerToPoint, ({ one }) => ({
